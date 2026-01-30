@@ -24,7 +24,7 @@ export function HomeScreen({ onPlay, onHighScores, onSettings, currentLevel }: H
       {/* Title */}
       <View style={styles.titleContainer}>
         <Text style={styles.title}>RUMBLE</Text>
-        <Text style={styles.subtitle}>Climb to Victory</Text>
+        <Text style={styles.subtitle}>Battle to the Top</Text>
       </View>
 
       {/* Level indicator */}

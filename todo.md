@@ -116,3 +116,9 @@
 - [x] Change app name to RUMBLE in app.config.ts
 - [x] Update home screen title
 - [x] Commit changes
+
+## RUMBLE Enhancements
+- [x] Generate bold RUMBLE logo
+- [x] Update app icons with new logo
+- [x] Change subtitle to "Battle to the Top"
+- [x] Implement screen shake effect on barrel collisions

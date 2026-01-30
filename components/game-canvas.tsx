@@ -202,6 +202,29 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
   const animationFrameRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const [, forceUpdate] = useState(0);
+  
+  // Screen shake effect
+  const shakeX = useSharedValue(0);
+  const shakeY = useSharedValue(0);
+  
+  const triggerShake = () => {
+    shakeX.value = withTiming(0, { duration: 0 });
+    shakeY.value = withTiming(0, { duration: 0 });
+    shakeX.value = withTiming(5, { duration: 50 });
+    shakeY.value = withTiming(5, { duration: 50 });
+    setTimeout(() => {
+      shakeX.value = withTiming(-5, { duration: 50 });
+      shakeY.value = withTiming(-5, { duration: 50 });
+    }, 50);
+    setTimeout(() => {
+      shakeX.value = withTiming(0, { duration: 100 });
+      shakeY.value = withTiming(0, { duration: 100 });
+    }, 100);
+  };
+  
+  const shakeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shakeX.value }, { translateY: shakeY.value }],
+  }));
 
   useEffect(() => {
     gameStateRef.current = createInitialState(currentLevel);
@@ -253,7 +276,12 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
 
       // Update barrels
       gameState.barrels.forEach((barrel) => {
+        const previousY = barrel.position.y;
         engine.updateBarrel(barrel, gameState.level.platforms);
+        // Trigger shake when barrel hits platform (sudden velocity change)
+        if (previousY < barrel.position.y && barrel.velocity.y === 0 && barrel.velocity.y !== previousY) {
+          triggerShake();
+        }
       });
 
       // Check barrel collisions
@@ -308,7 +336,7 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
 
   return (
     <View style={styles.container}>
-      <View style={styles.gameArea}>
+      <Animated.View style={[styles.gameArea, shakeStyle]}>
         {/* Platforms */}
         {gameState.level.platforms.map((platform) => (
           <PlatformView key={platform.id} platform={platform} />
@@ -340,7 +368,7 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
           height={gameState.player.height}
           invincible={gameState.player.invincible}
         />
-      </View>
+      </Animated.View>
     </View>
   );
 }
