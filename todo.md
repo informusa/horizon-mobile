@@ -99,3 +99,9 @@
 - [x] Build leaderboard UI screen
 - [x] Integrate leaderboard with game
 - [x] Test all new features
+
+## GitHub & Vercel Deployment (Round 2)
+- [ ] Commit all latest changes to git
+- [ ] Create updated deployment documentation
+- [ ] Push to GitHub
+- [ ] Deploy to Vercel
