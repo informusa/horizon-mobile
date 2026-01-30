@@ -148,3 +148,12 @@
 - [x] Fix touch/click event handlers
 - [ ] Test controls on mobile and desktop
 - [ ] Push fix to GitHub and Vercel
+
+## Keyboard Arrow Key Controls
+- [x] Add keyboard event listeners for arrow keys
+- [x] Implement left/right arrow for horizontal movement
+- [x] Implement up arrow for climbing ladders
+- [x] Implement down arrow for descending ladders
+- [x] Implement spacebar for jump
+- [ ] Test keyboard controls on desktop
+- [ ] Ensure touch controls still work on mobile

@@ -277,6 +277,95 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
     }
   }, [currentLevel]);
 
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isPaused) return;
+      
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          controlMethods.moveLeft();
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          controlMethods.moveRight();
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          // Climb up ladder
+          if (gameStateRef.current) {
+            const player = gameStateRef.current.player;
+            const onLadder = gameStateRef.current.level.ladders.some(
+              (ladder: Ladder) =>
+                player.position.x + player.width / 2 > ladder.x &&
+                player.position.x + player.width / 2 < ladder.x + ladder.width &&
+                player.position.y + player.height >= ladder.y &&
+                player.position.y <= ladder.y + ladder.height
+            );
+            if (onLadder) {
+              player.isClimbing = true;
+              player.velocity.y = -3;
+              player.velocity.x = 0;
+            }
+          }
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          // Climb down ladder
+          if (gameStateRef.current) {
+            const player = gameStateRef.current.player;
+            const onLadder = gameStateRef.current.level.ladders.some(
+              (ladder: Ladder) =>
+                player.position.x + player.width / 2 > ladder.x &&
+                player.position.x + player.width / 2 < ladder.x + ladder.width &&
+                player.position.y + player.height >= ladder.y &&
+                player.position.y <= ladder.y + ladder.height
+            );
+            if (onLadder) {
+              player.isClimbing = true;
+              player.velocity.y = 3;
+              player.velocity.x = 0;
+            }
+          }
+          break;
+        case " ":
+        case "Spacebar":
+          e.preventDefault();
+          controlMethods.jump();
+          break;
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (isPaused) return;
+      
+      switch (e.key) {
+        case "ArrowLeft":
+        case "ArrowRight":
+          e.preventDefault();
+          controlMethods.stopMove();
+          break;
+        case "ArrowUp":
+        case "ArrowDown":
+          e.preventDefault();
+          if (gameStateRef.current) {
+            gameStateRef.current.player.isClimbing = false;
+            gameStateRef.current.player.velocity.y = 0;
+          }
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [isPaused]);
+
   useEffect(() => {
     const gameLoop = (currentTime: number) => {
       if (isPaused) {
