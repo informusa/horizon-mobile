@@ -132,6 +132,13 @@
 - [x] Add particle effects for power-up collection
 
 ## Latest Release Deployment
-- [ ] Commit all new features to git
-- [ ] Push to GitHub repository
-- [ ] Verify Vercel auto-deployment
+- [x] Commit all new features to git
+- [x] Push to GitHub repository
+- [x] Verify Vercel auto-deployment
+
+## Web Build for Public Access
+- [ ] Build static web version with Expo
+- [ ] Configure Vercel for static site
+- [ ] Push build to GitHub
+- [ ] Deploy to Vercel
+- [ ] Verify public link works
