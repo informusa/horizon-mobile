@@ -10,6 +10,7 @@ import { GameOverScreen } from "@/components/game-over-screen";
 import { SettingsScreen } from "@/components/settings-screen";
 import { HighScoresScreen } from "@/components/high-scores-screen";
 import { OnlineLeaderboardScreen } from "@/components/online-leaderboard-screen";
+import { ChallengesScreen } from "@/components/challenges-screen";
 import { DEFAULT_SETTINGS, addHighScore } from "@/lib/game/state";
 import type { GameSettings, HighScore, GameState } from "@/lib/game/types";
 import { trpc } from "@/lib/trpc";
@@ -17,7 +18,7 @@ import { trpc } from "@/lib/trpc";
 const SETTINGS_KEY = "@horizon_settings";
 const HIGH_SCORES_KEY = "@horizon_high_scores";
 
-type AppScreen = GameState | "settings" | "highScores" | "onlineLeaderboard";
+type AppScreen = GameState | "settings" | "highScores" | "onlineLeaderboard" | "challenges";
 
 export default function HomeScreenTab() {
   const [screen, setScreen] = useState<AppScreen>("menu");
@@ -141,6 +142,7 @@ export default function HomeScreenTab() {
             onPlay={handlePlay}
             onHighScores={() => setScreen("highScores")}
             onSettings={() => setScreen("settings")}
+            onChallenges={() => setScreen("challenges")}
             currentLevel={currentLevel}
           />
         )}
@@ -191,6 +193,12 @@ export default function HomeScreenTab() {
 
         {screen === "onlineLeaderboard" && (
           <OnlineLeaderboardScreen
+            onBack={handleMainMenu}
+          />
+        )}
+
+        {screen === "challenges" && (
+          <ChallengesScreen
             onBack={handleMainMenu}
           />
         )}

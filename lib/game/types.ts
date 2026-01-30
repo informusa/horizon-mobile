@@ -24,6 +24,9 @@ export interface Player extends GameObject {
   direction: "left" | "right";
   invincible: boolean;
   invincibleTimer: number;
+  combo: number;
+  comboTimer: number;
+  lastComboAction: "powerup" | "dodge" | null;
 }
 
 export interface Platform {
@@ -84,4 +87,27 @@ export interface GameSettings {
   musicEnabled: boolean;
   hapticEnabled: boolean;
   controlSensitivity: number;
+}
+
+export interface DailyChallenge {
+  id: string;
+  title: string;
+  description: string;
+  objective: "no_powerups" | "speed_run" | "no_damage" | "collect_all";
+  targetValue: number;
+  reward: number;
+  completed: boolean;
+  date: string;
+}
+
+export interface Particle {
+  id: string;
+  x: number;
+  y: number;
+  velocityX: number;
+  velocityY: number;
+  size: number;
+  color: string;
+  life: number;
+  maxLife: number;
 }

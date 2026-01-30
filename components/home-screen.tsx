@@ -9,10 +9,11 @@ interface HomeScreenProps {
   onPlay: () => void;
   onHighScores: () => void;
   onSettings: () => void;
+  onChallenges: () => void;
   currentLevel: number;
 }
 
-export function HomeScreen({ onPlay, onHighScores, onSettings, currentLevel }: HomeScreenProps) {
+export function HomeScreen({ onPlay, onHighScores, onSettings, onChallenges, currentLevel }: HomeScreenProps) {
   const triggerHaptic = () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -52,6 +53,16 @@ export function HomeScreen({ onPlay, onHighScores, onSettings, currentLevel }: H
           style={({ pressed }) => [styles.button, styles.secondaryButton, pressed && styles.buttonPressed]}
         >
           <Text style={styles.secondaryButtonText}>HIGH SCORES</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => {
+            triggerHaptic();
+            onChallenges();
+          }}
+          style={({ pressed }) => [styles.button, styles.secondaryButton, pressed && styles.buttonPressed]}
+        >
+          <Text style={styles.secondaryButtonText}>🏆 CHALLENGES</Text>
         </Pressable>
 
         <Pressable

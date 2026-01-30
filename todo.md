@@ -122,3 +122,11 @@
 - [x] Update app icons with new logo
 - [x] Change subtitle to "Battle to the Top"
 - [x] Implement screen shake effect on barrel collisions
+
+## Advanced Features
+- [x] Implement combo system for consecutive actions
+- [x] Add combo multiplier display
+- [x] Create daily challenges system
+- [x] Implement challenge tracking and rewards
+- [x] Add particle effects for barrel impacts
+- [x] Add particle effects for power-up collection

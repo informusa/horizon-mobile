@@ -3,12 +3,14 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withRepeat } from "react-native-reanimated";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withRepeat, withSequence } from "react-native-reanimated";
 import { GameEngine } from "@/lib/game/engine";
 import { createInitialState, spawnBarrel, spawnPowerUp, updateInvincibility, handlePlayerHit, collectPowerUp, cleanupInactivePowerUps } from "@/lib/game/state";
 import type { GameStateData } from "@/lib/game/state";
-import type { Platform, Ladder, Barrel, PowerUp } from "@/lib/game/types";
+import type { Platform, Ladder, Barrel, PowerUp, Particle } from "@/lib/game/types";
+import { updateComboTimer, getComboText } from "@/lib/game/combo";
+import { createExplosion, updateParticles } from "@/lib/game/particles";
 
 interface GameCanvasProps {
   onGameOver: (score: number) => void;
@@ -202,6 +204,7 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
   const animationFrameRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const [, forceUpdate] = useState(0);
+  const [particles, setParticles] = useState<Particle[]>([]);
   
   // Screen shake effect
   const shakeX = useSharedValue(0);
@@ -277,10 +280,12 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
       // Update barrels
       gameState.barrels.forEach((barrel) => {
         const previousY = barrel.position.y;
+        const previousVelocity = barrel.velocity.y;
         engine.updateBarrel(barrel, gameState.level.platforms);
-        // Trigger shake when barrel hits platform (sudden velocity change)
-        if (previousY < barrel.position.y && barrel.velocity.y === 0 && barrel.velocity.y !== previousY) {
+        // Trigger shake and particles when barrel hits platform
+        if (previousVelocity > 0 && barrel.velocity.y === 0) {
           triggerShake();
+          setParticles((prev) => [...prev, ...createExplosion(barrel.position.x + barrel.width / 2, barrel.position.y + barrel.height, "#FBBF24", 6)]);
         }
       });
 
@@ -301,6 +306,9 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
       const powerUpHit = engine.checkPowerUpCollision(gameState.player, gameState.powerUps);
       if (powerUpHit) {
         collectPowerUp(gameState.player, powerUpHit);
+        // Create particle effect
+        const color = powerUpHit.type === "invincibility" ? "#FFD700" : powerUpHit.type === "extraLife" ? "#4ADE80" : "#60A5FA";
+        setParticles((prev) => [...prev, ...createExplosion(powerUpHit.position.x + 15, powerUpHit.position.y + 15, color, 12)]);
       }
 
       // Cleanup inactive power-ups
@@ -308,6 +316,12 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
 
       // Update invincibility
       updateInvincibility(gameState.player, deltaTime);
+
+      // Update combo timer
+      updateComboTimer(gameState.player, deltaTime);
+
+      // Update particles
+      setParticles((prev) => updateParticles(prev, deltaTime));
 
       // Check goal reached
       if (engine.checkGoalReached(gameState.player, gameState.level.goalPosition)) {
@@ -368,6 +382,31 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
           height={gameState.player.height}
           invincible={gameState.player.invincible}
         />
+
+        {/* Particles */}
+        {particles.map((particle) => (
+          <View
+            key={particle.id}
+            style={[
+              styles.particle,
+              {
+                left: particle.x,
+                top: particle.y,
+                width: particle.size,
+                height: particle.size,
+                backgroundColor: particle.color,
+                opacity: particle.life,
+              },
+            ]}
+          />
+        ))}
+
+        {/* Combo Display */}
+        {gameState.player.combo > 0 && (
+          <View style={styles.comboDisplay}>
+            <Text style={styles.comboText}>{getComboText(gameState.player.combo)}</Text>
+          </View>
+        )}
       </Animated.View>
     </View>
   );
@@ -429,6 +468,26 @@ const styles = StyleSheet.create({
   player: {
     position: "absolute",
     backgroundColor: "#FF6B35",
+    borderRadius: 4,
+  },
+  comboDisplay: {
+    position: "absolute",
+    top: 20,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  comboText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#FFD700",
+    textShadowColor: "#000",
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
+  },
+  particle: {
+    position: "absolute",
     borderRadius: 4,
   },
 });

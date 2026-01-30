@@ -173,6 +173,9 @@ export class GameEngine {
       direction: "left" as const,
       invincible: false,
       invincibleTimer: 0,
+      combo: 0,
+      comboTimer: 0,
+      lastComboAction: null,
     };
     const platform = this.checkPlatformCollision(barrelAsPlayer, platforms);
     if (platform) {

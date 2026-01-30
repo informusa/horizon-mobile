@@ -4,6 +4,7 @@
 
 import type { Player, Barrel, PowerUp, GameState, GameSettings, HighScore, Level } from "./types";
 import { LEVELS } from "./levels";
+import { addCombo, calculateComboBonus } from "./combo";
 
 export interface GameStateData {
   gameState: GameState;
@@ -39,6 +40,9 @@ export function createInitialPlayer(): Player {
     direction: "right",
     invincible: false,
     invincibleTimer: 0,
+    combo: 0,
+    comboTimer: 0,
+    lastComboAction: null,
   };
 }
 
@@ -95,21 +99,29 @@ export function spawnPowerUp(gameState: GameStateData, currentTime: number): voi
 export function collectPowerUp(player: Player, powerUp: PowerUp): void {
   if (!powerUp.active) return;
 
+  // Add combo for collecting power-ups
+  addCombo(player, "powerup");
+
+  let basePoints = 0;
   switch (powerUp.type) {
     case "invincibility":
       player.invincible = true;
       player.invincibleTimer = powerUp.duration;
-      player.score += 100;
+      basePoints = 100;
       break;
     case "speedBoost":
       // Speed boost handled in game engine
-      player.score += 100;
+      basePoints = 100;
       break;
     case "extraLife":
       player.lives += 1;
-      player.score += 200;
+      basePoints = 200;
       break;
   }
+
+  // Apply combo bonus
+  const bonusPoints = calculateComboBonus(basePoints, player.combo);
+  player.score += bonusPoints;
 
   powerUp.active = false;
 }
