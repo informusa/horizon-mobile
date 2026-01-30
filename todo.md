@@ -76,3 +76,15 @@
 - [x] Create checkpoint
 - [x] Deploy to GitHub
 - [x] Prepare app store submission materials
+
+## Bug Fixes
+- [x] Replace HTML canvas with React Native Views for Expo Go compatibility
+- [x] Reimplement game rendering using React Native components
+- [ ] Test game in Expo Go on mobile device
+
+## GitHub & Vercel Deployment
+- [ ] Optimize game for web compatibility
+- [ ] Push code to GitHub repository
+- [ ] Configure Vercel deployment
+- [ ] Deploy web version to Vercel
+- [ ] Test web version in browser
