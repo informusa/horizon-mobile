@@ -142,3 +142,9 @@
 - [ ] Push build to GitHub
 - [ ] Deploy to Vercel
 - [ ] Verify public link works
+
+## Bug Fixes - Hand Controls
+- [x] Diagnose why hand controls don't work
+- [x] Fix touch/click event handlers
+- [ ] Test controls on mobile and desktop
+- [ ] Push fix to GitHub and Vercel

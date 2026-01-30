@@ -18,6 +18,14 @@ interface GameCanvasProps {
   onPause: () => void;
   isPaused: boolean;
   currentLevel: number;
+  onControlsReady?: (controls: GameControls) => void;
+}
+
+export interface GameControls {
+  moveLeft: () => void;
+  moveRight: () => void;
+  stopMove: () => void;
+  jump: () => void;
 }
 
 const CANVAS_WIDTH = 375;
@@ -198,7 +206,7 @@ function PlayerView({
   );
 }
 
-export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, currentLevel }: GameCanvasProps) {
+export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, currentLevel, onControlsReady }: GameCanvasProps) {
   const gameStateRef = useRef<GameStateData>(createInitialState(currentLevel));
   const engineRef = useRef(new GameEngine({ canvasWidth: CANVAS_WIDTH, canvasHeight: CANVAS_HEIGHT }));
   const animationFrameRef = useRef<number>(0);
@@ -229,9 +237,44 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
     transform: [{ translateX: shakeX.value }, { translateY: shakeY.value }],
   }));
 
+  // Control methods
+  const controlMethods: GameControls = {
+    moveLeft: () => {
+      if (gameStateRef.current) {
+        gameStateRef.current.player.velocity.x = -5;
+        gameStateRef.current.player.direction = "left";
+      }
+    },
+    moveRight: () => {
+      if (gameStateRef.current) {
+        gameStateRef.current.player.velocity.x = 5;
+        gameStateRef.current.player.direction = "right";
+      }
+    },
+    stopMove: () => {
+      if (gameStateRef.current && !gameStateRef.current.player.isClimbing) {
+        gameStateRef.current.player.velocity.x = 0;
+      }
+    },
+    jump: () => {
+      if (gameStateRef.current) {
+        const player = gameStateRef.current.player;
+        if (!player.isJumping && !player.isClimbing) {
+          player.velocity.y = -15;
+          player.isJumping = true;
+        }
+      }
+    },
+  };
+
   useEffect(() => {
     gameStateRef.current = createInitialState(currentLevel);
     gameStateRef.current.gameState = "playing";
+    
+    // Expose controls to parent
+    if (onControlsReady) {
+      onControlsReady(controlMethods);
+    }
   }, [currentLevel]);
 
   useEffect(() => {

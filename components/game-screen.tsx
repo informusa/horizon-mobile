@@ -4,9 +4,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import { GameCanvas } from "./game-canvas";
+import { GameCanvas, type GameControls as GameControlMethods } from "./game-canvas";
 import { GameControls } from "./game-controls";
-import type { GameStateData } from "@/lib/game/state";
 
 interface GameScreenProps {
   onGameOver: (score: number) => void;
@@ -18,37 +17,26 @@ interface GameScreenProps {
 
 export function GameScreen({ onGameOver, onLevelComplete, onPause, currentLevel, settings }: GameScreenProps) {
   const [isPaused, setIsPaused] = useState(false);
-  const gameStateRef = useRef<GameStateData | null>(null);
-  const moveIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const controlMethodsRef = useRef<GameControlMethods | null>(null);
+
+  const handleControlsReady = (controls: GameControlMethods) => {
+    controlMethodsRef.current = controls;
+  };
 
   const handleMoveLeft = () => {
-    if (gameStateRef.current) {
-      gameStateRef.current.player.velocity.x = -5;
-      gameStateRef.current.player.direction = "left";
-    }
+    controlMethodsRef.current?.moveLeft();
   };
 
   const handleMoveRight = () => {
-    if (gameStateRef.current) {
-      gameStateRef.current.player.velocity.x = 5;
-      gameStateRef.current.player.direction = "right";
-    }
+    controlMethodsRef.current?.moveRight();
   };
 
   const handleStopMove = () => {
-    if (gameStateRef.current && !gameStateRef.current.player.isClimbing) {
-      gameStateRef.current.player.velocity.x = 0;
-    }
+    controlMethodsRef.current?.stopMove();
   };
 
   const handleJump = () => {
-    if (gameStateRef.current) {
-      const player = gameStateRef.current.player;
-      if (!player.isJumping && !player.isClimbing) {
-        player.velocity.y = -15;
-        player.isJumping = true;
-      }
-    }
+    controlMethodsRef.current?.jump();
   };
 
   const handlePause = () => {
@@ -56,13 +44,7 @@ export function GameScreen({ onGameOver, onLevelComplete, onPause, currentLevel,
     onPause();
   };
 
-  useEffect(() => {
-    return () => {
-      if (moveIntervalRef.current) {
-        clearInterval(moveIntervalRef.current);
-      }
-    };
-  }, []);
+
 
   return (
     <View style={styles.container}>
@@ -72,6 +54,7 @@ export function GameScreen({ onGameOver, onLevelComplete, onPause, currentLevel,
         onPause={handlePause}
         isPaused={isPaused}
         currentLevel={currentLevel}
+        onControlsReady={handleControlsReady}
       />
       <GameControls
         onMoveLeft={handleMoveLeft}
