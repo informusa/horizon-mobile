@@ -146,8 +146,8 @@
 ## Bug Fixes - Hand Controls
 - [x] Diagnose why hand controls don't work
 - [x] Fix touch/click event handlers
-- [ ] Test controls on mobile and desktop
-- [ ] Push fix to GitHub and Vercel
+- [x] Test controls on mobile and desktop
+- [x] Push fix to GitHub and Vercel
 
 ## Keyboard Arrow Key Controls
 - [x] Add keyboard event listeners for arrow keys
@@ -155,5 +155,5 @@
 - [x] Implement up arrow for climbing ladders
 - [x] Implement down arrow for descending ladders
 - [x] Implement spacebar for jump
-- [ ] Test keyboard controls on desktop
-- [ ] Ensure touch controls still work on mobile
+- [x] Test keyboard controls on desktop
+- [x] Ensure touch controls still work on mobile
