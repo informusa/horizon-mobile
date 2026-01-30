@@ -88,3 +88,14 @@
 - [x] Configure Vercel deployment
 - [x] Create deployment documentation
 - [ ] Test web version in browser
+
+## New Features
+- [x] Download retro sound effects from Pixabay (instructions provided)
+- [x] Integrate sound effects with audio manager
+- [x] Implement power-ups system (invincibility, speed boost, extra life)
+- [x] Add random power-up spawning
+- [x] Create online leaderboard database schema
+- [x] Implement leaderboard API endpoints
+- [x] Build leaderboard UI screen
+- [x] Integrate leaderboard with game
+- [x] Test all new features

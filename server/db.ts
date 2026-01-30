@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, leaderboard, InsertLeaderboardEntry, LeaderboardEntry } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,67 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+/**
+ * Get top leaderboard entries
+ */
+export async function getLeaderboard(limit: number = 100): Promise<LeaderboardEntry[]> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get leaderboard: database not available");
+    return [];
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(leaderboard)
+      .orderBy(desc(leaderboard.score))
+      .limit(limit);
+    return result;
+  } catch (error) {
+    console.error("[Database] Failed to get leaderboard:", error);
+    return [];
+  }
+}
+
+/**
+ * Add a new leaderboard entry
+ */
+export async function addLeaderboardEntry(entry: InsertLeaderboardEntry): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot add leaderboard entry: database not available");
+    return;
+  }
+
+  try {
+    await db.insert(leaderboard).values(entry);
+  } catch (error) {
+    console.error("[Database] Failed to add leaderboard entry:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get user's best score
+ */
+export async function getUserBestScore(userId: number): Promise<LeaderboardEntry | undefined> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user best score: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(leaderboard)
+      .where(eq(leaderboard.userId, userId))
+      .orderBy(desc(leaderboard.score))
+      .limit(1);
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to get user best score:", error);
+    return undefined;
+  }
+}

@@ -1,7 +1,5 @@
 /**
  * Audio Manager - Game sound effects and music
- * Note: Audio files would be added to assets/audio/ directory
- * For this demo, we're setting up the structure without actual audio files
  */
 
 import { Audio } from "expo-av";
@@ -11,6 +9,7 @@ export class AudioManager {
   private sounds: Map<string, Audio.Sound> = new Map();
   private music: Audio.Sound | null = null;
   private settings: GameSettings;
+  private initialized: boolean = false;
 
   constructor(settings: GameSettings) {
     this.settings = settings;
@@ -23,20 +22,55 @@ export class AudioManager {
         playsInSilentModeIOS: true,
         staysActiveInBackground: false,
       });
+      this.initialized = true;
     } catch (error) {
       console.error("Failed to initialize audio:", error);
     }
   }
 
   async loadSounds() {
-    // Sound effects would be loaded here
-    // Example:
-    // const jumpSound = await Audio.Sound.createAsync(require('@/assets/audio/jump.mp3'));
-    // this.sounds.set('jump', jumpSound.sound);
+    if (!this.initialized) return;
+
+    try {
+      // Note: Sound files should be placed in assets/audio/ directory
+      // For now, we'll handle missing files gracefully
+      
+      // Uncomment these when you add actual MP3 files:
+      /*
+      const jumpSound = await Audio.Sound.createAsync(
+        require('@/assets/audio/jump.mp3')
+      );
+      this.sounds.set('jump', jumpSound.sound);
+
+      const collisionSound = await Audio.Sound.createAsync(
+        require('@/assets/audio/collision.mp3')
+      );
+      this.sounds.set('collision', collisionSound.sound);
+
+      const powerupSound = await Audio.Sound.createAsync(
+        require('@/assets/audio/powerup.mp3')
+      );
+      this.sounds.set('powerup', powerupSound.sound);
+
+      const gameoverSound = await Audio.Sound.createAsync(
+        require('@/assets/audio/gameover.mp3')
+      );
+      this.sounds.set('gameover', gameoverSound.sound);
+
+      const levelcompleteSound = await Audio.Sound.createAsync(
+        require('@/assets/audio/levelcomplete.mp3')
+      );
+      this.sounds.set('levelcomplete', levelcompleteSound.sound);
+      */
+
+      console.log("Audio manager ready. Add MP3 files to assets/audio/ to enable sounds.");
+    } catch (error) {
+      console.error("Failed to load sounds:", error);
+    }
   }
 
   async playSound(soundName: string) {
-    if (!this.settings.soundEnabled) return;
+    if (!this.settings.soundEnabled || !this.initialized) return;
 
     const sound = this.sounds.get(soundName);
     if (sound) {
@@ -49,16 +83,22 @@ export class AudioManager {
   }
 
   async playMusic() {
-    if (!this.settings.musicEnabled || this.music) return;
+    if (!this.settings.musicEnabled || this.music || !this.initialized) return;
 
-    // Background music would be loaded and played here
-    // Example:
-    // const { sound } = await Audio.Sound.createAsync(
-    //   require('@/assets/audio/background.mp3'),
-    //   { isLooping: true, volume: 0.5 }
-    // );
-    // this.music = sound;
-    // await this.music.playAsync();
+    try {
+      // Uncomment when you add background music:
+      /*
+      const { sound } = await Audio.Sound.createAsync(
+        require('@/assets/audio/background.mp3'),
+        { isLooping: true, volume: 0.5 }
+      );
+      this.music = sound;
+      await this.music.playAsync();
+      */
+      console.log("Background music ready. Add background.mp3 to assets/audio/ to enable.");
+    } catch (error) {
+      console.error("Failed to play music:", error);
+    }
   }
 
   async stopMusic() {

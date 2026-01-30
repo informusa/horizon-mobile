@@ -25,4 +25,17 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Leaderboard table for storing high scores
+ */
+export const leaderboard = mysqlTable("leaderboard", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").references(() => users.id),
+  playerName: varchar("playerName", { length: 50 }).notNull(),
+  score: int("score").notNull(),
+  level: int("level").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type LeaderboardEntry = typeof leaderboard.$inferSelect;
+export type InsertLeaderboardEntry = typeof leaderboard.$inferInsert;

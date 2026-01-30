@@ -2,7 +2,7 @@
  * Game Engine - Core physics and collision detection
  */
 
-import type { Vector2, GameObject, Player, Platform, Ladder, Barrel, GameConfig } from "./types";
+import type { Vector2, GameObject, Player, Platform, Ladder, Barrel, PowerUp, GameConfig } from "./types";
 
 export const DEFAULT_CONFIG: GameConfig = {
   canvasWidth: 375,
@@ -210,6 +210,18 @@ export class GameEngine {
       player.position.y = this.config.canvasHeight - player.height;
       player.velocity.y = 0;
     }
+  }
+
+  /**
+   * Check power-up collision with player
+   */
+  checkPowerUpCollision(player: Player, powerUps: PowerUp[]): PowerUp | null {
+    for (const powerUp of powerUps) {
+      if (powerUp.active && this.checkCollision(player, powerUp)) {
+        return powerUp;
+      }
+    }
+    return null;
   }
 
   /**

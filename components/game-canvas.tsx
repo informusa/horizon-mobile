@@ -6,9 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, Dimensions } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withRepeat } from "react-native-reanimated";
 import { GameEngine } from "@/lib/game/engine";
-import { createInitialState, spawnBarrel, updateInvincibility, handlePlayerHit } from "@/lib/game/state";
+import { createInitialState, spawnBarrel, spawnPowerUp, updateInvincibility, handlePlayerHit, collectPowerUp, cleanupInactivePowerUps } from "@/lib/game/state";
 import type { GameStateData } from "@/lib/game/state";
-import type { Platform, Ladder, Barrel } from "@/lib/game/types";
+import type { Platform, Ladder, Barrel, PowerUp } from "@/lib/game/types";
 
 interface GameCanvasProps {
   onGameOver: (score: number) => void;
@@ -78,6 +78,47 @@ function BarrelView({ barrel }: { barrel: Barrel }) {
           top: barrel.position.y,
           width: barrel.width,
           height: barrel.height,
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+}
+
+// Power-up component with pulse and glow animation
+function PowerUpView({ powerUp }: { powerUp: PowerUp }) {
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    scale.value = withRepeat(withTiming(1.15, { duration: 600 }), -1, true);
+    opacity.value = withRepeat(withTiming(0.7, { duration: 800 }), -1, true);
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  if (!powerUp.active) return null;
+
+  // Different colors for different power-up types
+  const colors = {
+    invincibility: "#A78BFA", // Purple
+    speedBoost: "#FBBF24", // Yellow
+    extraLife: "#F87171", // Red
+  };
+
+  return (
+    <Animated.View
+      style={[
+        styles.powerUp,
+        {
+          left: powerUp.position.x,
+          top: powerUp.position.y,
+          width: powerUp.width,
+          height: powerUp.height,
+          backgroundColor: colors[powerUp.type],
         },
         animatedStyle,
       ]}
@@ -207,6 +248,9 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
       // Spawn barrels
       spawnBarrel(gameState, currentTime);
 
+      // Spawn power-ups
+      spawnPowerUp(gameState, currentTime);
+
       // Update barrels
       gameState.barrels.forEach((barrel) => {
         engine.updateBarrel(barrel, gameState.level.platforms);
@@ -224,6 +268,15 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
           return;
         }
       }
+
+      // Check power-up collisions
+      const powerUpHit = engine.checkPowerUpCollision(gameState.player, gameState.powerUps);
+      if (powerUpHit) {
+        collectPowerUp(gameState.player, powerUpHit);
+      }
+
+      // Cleanup inactive power-ups
+      cleanupInactivePowerUps(gameState);
 
       // Update invincibility
       updateInvincibility(gameState.player, deltaTime);
@@ -268,6 +321,11 @@ export function GameCanvas({ onGameOver, onLevelComplete, onPause, isPaused, cur
 
         {/* Goal */}
         <GoalView x={gameState.level.goalPosition.x} y={gameState.level.goalPosition.y} />
+
+        {/* Power-ups */}
+        {gameState.powerUps.map((powerUp) => (
+          <PowerUpView key={powerUp.id} powerUp={powerUp} />
+        ))}
 
         {/* Barrels */}
         {gameState.barrels.map((barrel) => (
@@ -328,6 +386,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 3,
     borderColor: "#22C55E",
+  },
+  powerUp: {
+    position: "absolute",
+    borderRadius: 15,
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
   player: {
     position: "absolute",

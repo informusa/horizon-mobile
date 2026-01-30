@@ -65,6 +65,55 @@ export function resetPlayerPosition(player: Player): void {
   player.invincibleTimer = 0;
 }
 
+export function spawnPowerUp(gameState: GameStateData, currentTime: number): void {
+  // Spawn power-ups randomly (5% chance every 3 seconds)
+  const timeSinceLastCheck = currentTime % 3000;
+  if (timeSinceLastCheck < 100 && Math.random() < 0.05 && gameState.powerUps.length < 2) {
+    const types: Array<"invincibility" | "extraLife" | "speedBoost"> = ["invincibility", "extraLife", "speedBoost"];
+    const type = types[Math.floor(Math.random() * types.length)];
+    
+    // Spawn on a random platform
+    const platform = gameState.level.platforms[Math.floor(Math.random() * gameState.level.platforms.length)];
+    
+    const powerUp: PowerUp = {
+      id: `powerup-${currentTime}`,
+      position: { 
+        x: platform.x + Math.random() * (platform.width - 30),
+        y: platform.y - 35
+      },
+      velocity: { x: 0, y: 0 },
+      width: 30,
+      height: 30,
+      active: true,
+      type,
+      duration: type === "extraLife" ? 0 : 5000, // 5 seconds for temporary power-ups
+    };
+    gameState.powerUps.push(powerUp);
+  }
+}
+
+export function collectPowerUp(player: Player, powerUp: PowerUp): void {
+  if (!powerUp.active) return;
+
+  switch (powerUp.type) {
+    case "invincibility":
+      player.invincible = true;
+      player.invincibleTimer = powerUp.duration;
+      player.score += 100;
+      break;
+    case "speedBoost":
+      // Speed boost handled in game engine
+      player.score += 100;
+      break;
+    case "extraLife":
+      player.lives += 1;
+      player.score += 200;
+      break;
+  }
+
+  powerUp.active = false;
+}
+
 export function spawnBarrel(gameState: GameStateData, currentTime: number): void {
   if (currentTime - gameState.lastBarrelSpawn > gameState.level.barrelSpawnRate) {
     const barrel: Barrel = {
@@ -113,6 +162,10 @@ export function calculateScore(player: Player, timeBonus: number = 0): number {
 export function addHighScore(highScores: HighScore[], newScore: HighScore): HighScore[] {
   const updated = [...highScores, newScore].sort((a, b) => b.score - a.score).slice(0, 10);
   return updated;
+}
+
+export function cleanupInactivePowerUps(gameState: GameStateData): void {
+  gameState.powerUps = gameState.powerUps.filter(p => p.active);
 }
 
 export function nextLevel(gameState: GameStateData): void {

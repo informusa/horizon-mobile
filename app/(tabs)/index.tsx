@@ -9,18 +9,24 @@ import { LevelCompleteScreen } from "@/components/level-complete-screen";
 import { GameOverScreen } from "@/components/game-over-screen";
 import { SettingsScreen } from "@/components/settings-screen";
 import { HighScoresScreen } from "@/components/high-scores-screen";
+import { OnlineLeaderboardScreen } from "@/components/online-leaderboard-screen";
 import { DEFAULT_SETTINGS, addHighScore } from "@/lib/game/state";
 import type { GameSettings, HighScore, GameState } from "@/lib/game/types";
+import { trpc } from "@/lib/trpc";
 
 const SETTINGS_KEY = "@horizon_settings";
 const HIGH_SCORES_KEY = "@horizon_high_scores";
 
+type AppScreen = GameState | "settings" | "highScores" | "onlineLeaderboard";
+
 export default function HomeScreenTab() {
-  const [screen, setScreen] = useState<GameState>("menu");
+  const [screen, setScreen] = useState<AppScreen>("menu");
   const [currentLevel, setCurrentLevel] = useState(0);
   const [currentScore, setCurrentScore] = useState(0);
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
   const [highScores, setHighScores] = useState<HighScore[]>([]);
+  
+  const addLeaderboardMutation = trpc.leaderboard.addEntry.useMutation();
 
   // Load settings and high scores on mount
   useEffect(() => {
@@ -70,6 +76,17 @@ export default function HomeScreenTab() {
       const updated = addHighScore(highScores, newScore);
       await AsyncStorage.setItem(HIGH_SCORES_KEY, JSON.stringify(updated));
       setHighScores(updated);
+      
+      // Submit to online leaderboard
+      try {
+        await addLeaderboardMutation.mutateAsync({
+          playerName: "Player",
+          score,
+          level,
+        });
+      } catch (error) {
+        console.error("Failed to submit to online leaderboard:", error);
+      }
     } catch (error) {
       console.error("Failed to save high score:", error);
     }
@@ -122,8 +139,8 @@ export default function HomeScreenTab() {
         {screen === "menu" && (
           <HomeScreen
             onPlay={handlePlay}
-            onHighScores={() => setScreen("paused")} // Reusing paused state for high scores
-            onSettings={() => setScreen("paused")} // Reusing paused state for settings
+            onHighScores={() => setScreen("highScores")}
+            onSettings={() => setScreen("settings")}
             currentLevel={currentLevel}
           />
         )}
@@ -154,6 +171,27 @@ export default function HomeScreenTab() {
             highScore={getHighScore()}
             onRetry={handleReplay}
             onMainMenu={handleMainMenu}
+          />
+        )}
+
+        {screen === "settings" && (
+          <SettingsScreen
+            settings={settings}
+            onUpdateSettings={saveSettings}
+            onBack={handleMainMenu}
+          />
+        )}
+
+        {screen === "highScores" && (
+          <HighScoresScreen
+            highScores={highScores}
+            onBack={handleMainMenu}
+          />
+        )}
+
+        {screen === "onlineLeaderboard" && (
+          <OnlineLeaderboardScreen
+            onBack={handleMainMenu}
           />
         )}
       </View>
