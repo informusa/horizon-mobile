@@ -1,48 +1,169 @@
-import { ScrollView, Text, View, TouchableOpacity } from "react-native";
+import { useState, useEffect } from "react";
+import { View, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { ScreenContainer } from "@/components/screen-container";
+import { HomeScreen } from "@/components/home-screen";
+import { GameScreen } from "@/components/game-screen";
+import { LevelCompleteScreen } from "@/components/level-complete-screen";
+import { GameOverScreen } from "@/components/game-over-screen";
+import { SettingsScreen } from "@/components/settings-screen";
+import { HighScoresScreen } from "@/components/high-scores-screen";
+import { DEFAULT_SETTINGS, addHighScore } from "@/lib/game/state";
+import type { GameSettings, HighScore, GameState } from "@/lib/game/types";
 
-/**
- * Home Screen - NativeWind Example
- *
- * This template uses NativeWind (Tailwind CSS for React Native).
- * You can use familiar Tailwind classes directly in className props.
- *
- * Key patterns:
- * - Use `className` instead of `style` for most styling
- * - Theme colors: use tokens directly (bg-background, text-foreground, bg-primary, etc.); no dark: prefix needed
- * - Responsive: standard Tailwind breakpoints work on web
- * - Custom colors defined in tailwind.config.js
- */
-export default function HomeScreen() {
+const SETTINGS_KEY = "@horizon_settings";
+const HIGH_SCORES_KEY = "@horizon_high_scores";
+
+export default function HomeScreenTab() {
+  const [screen, setScreen] = useState<GameState>("menu");
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [currentScore, setCurrentScore] = useState(0);
+  const [settings, setSettings] = useState<GameSettings>(DEFAULT_SETTINGS);
+  const [highScores, setHighScores] = useState<HighScore[]>([]);
+
+  // Load settings and high scores on mount
+  useEffect(() => {
+    loadSettings();
+    loadHighScores();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const saved = await AsyncStorage.getItem(SETTINGS_KEY);
+      if (saved) {
+        setSettings(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+    }
+  };
+
+  const saveSettings = async (newSettings: GameSettings) => {
+    try {
+      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+      setSettings(newSettings);
+    } catch (error) {
+      console.error("Failed to save settings:", error);
+    }
+  };
+
+  const loadHighScores = async () => {
+    try {
+      const saved = await AsyncStorage.getItem(HIGH_SCORES_KEY);
+      if (saved) {
+        setHighScores(JSON.parse(saved));
+      }
+    } catch (error) {
+      console.error("Failed to load high scores:", error);
+    }
+  };
+
+  const saveHighScore = async (score: number, level: number) => {
+    try {
+      const newScore: HighScore = {
+        name: "Player",
+        score,
+        level,
+        date: new Date().toISOString(),
+      };
+      const updated = addHighScore(highScores, newScore);
+      await AsyncStorage.setItem(HIGH_SCORES_KEY, JSON.stringify(updated));
+      setHighScores(updated);
+    } catch (error) {
+      console.error("Failed to save high score:", error);
+    }
+  };
+
+  const handlePlay = () => {
+    setScreen("playing");
+    setCurrentScore(0);
+  };
+
+  const handleGameOver = (score: number) => {
+    setCurrentScore(score);
+    saveHighScore(score, currentLevel + 1);
+    setScreen("gameOver");
+  };
+
+  const handleLevelComplete = (score: number, level: number) => {
+    setCurrentScore(score);
+    saveHighScore(score, level);
+    setScreen("levelComplete");
+  };
+
+  const handleNextLevel = () => {
+    setCurrentLevel((prev) => Math.min(prev + 1, 2)); // Max 3 levels (0, 1, 2)
+    setScreen("playing");
+  };
+
+  const handleReplay = () => {
+    setScreen("playing");
+  };
+
+  const handleMainMenu = () => {
+    setScreen("menu");
+    setCurrentLevel(0);
+    setCurrentScore(0);
+  };
+
+  const handlePause = () => {
+    // Pause is handled within GameScreen
+  };
+
+  const getHighScore = () => {
+    if (highScores.length === 0) return 0;
+    return highScores[0].score;
+  };
+
   return (
-    <ScreenContainer className="p-6">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="flex-1 gap-8">
-          {/* Hero Section */}
-          <View className="items-center gap-2">
-            <Text className="text-4xl font-bold text-foreground">Welcome</Text>
-            <Text className="text-base text-muted text-center">
-              Edit app/(tabs)/index.tsx to get started
-            </Text>
-          </View>
+    <ScreenContainer edges={["top", "bottom", "left", "right"]}>
+      <View style={styles.container}>
+        {screen === "menu" && (
+          <HomeScreen
+            onPlay={handlePlay}
+            onHighScores={() => setScreen("paused")} // Reusing paused state for high scores
+            onSettings={() => setScreen("paused")} // Reusing paused state for settings
+            currentLevel={currentLevel}
+          />
+        )}
 
-          {/* Example Card */}
-          <View className="w-full max-w-sm self-center bg-surface rounded-2xl p-6 shadow-sm border border-border">
-            <Text className="text-lg font-semibold text-foreground mb-2">NativeWind Ready</Text>
-            <Text className="text-sm text-muted leading-relaxed">
-              Use Tailwind CSS classes directly in your React Native components.
-            </Text>
-          </View>
+        {screen === "playing" && (
+          <GameScreen
+            onGameOver={handleGameOver}
+            onLevelComplete={handleLevelComplete}
+            onPause={handlePause}
+            currentLevel={currentLevel}
+            settings={settings}
+          />
+        )}
 
-          {/* Example Button */}
-          <View className="items-center">
-            <TouchableOpacity className="bg-primary px-6 py-3 rounded-full active:opacity-80">
-              <Text className="text-background font-semibold">Get Started</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
+        {screen === "levelComplete" && (
+          <LevelCompleteScreen
+            score={currentScore}
+            level={currentLevel + 1}
+            onNextLevel={handleNextLevel}
+            onReplay={handleReplay}
+            onMainMenu={handleMainMenu}
+          />
+        )}
+
+        {screen === "gameOver" && (
+          <GameOverScreen
+            score={currentScore}
+            highScore={getHighScore()}
+            onRetry={handleReplay}
+            onMainMenu={handleMainMenu}
+          />
+        )}
+      </View>
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#1A1A2E",
+  },
+});
