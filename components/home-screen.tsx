@@ -23,7 +23,7 @@ export function HomeScreen({ onPlay, onHighScores, onSettings, currentLevel }: H
     <View style={styles.container}>
       {/* Title */}
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>HORIZON</Text>
+        <Text style={styles.title}>RUMBLE</Text>
         <Text style={styles.subtitle}>Climb to Victory</Text>
       </View>
 

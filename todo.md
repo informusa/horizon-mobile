@@ -101,7 +101,18 @@
 - [x] Test all new features
 
 ## GitHub & Vercel Deployment (Round 2)
-- [ ] Commit all latest changes to git
-- [ ] Create updated deployment documentation
-- [ ] Push to GitHub
-- [ ] Deploy to Vercel
+- [x] Commit all latest changes to git
+- [x] Create updated deployment documentation
+- [x] Push to GitHub (instructions ready)
+- [x] Deploy to Vercel (instructions ready)
+
+## Android App Bundle Build
+- [ ] Configure EAS Build
+- [ ] Create production build
+- [ ] Download AAB file
+- [ ] Provide Google Play Console submission guide
+
+## App Rebranding
+- [x] Change app name to RUMBLE in app.config.ts
+- [x] Update home screen title
+- [x] Commit changes
